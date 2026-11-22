@@ -1,6 +1,6 @@
 # PRODUCTION ROADMAP & MILESTONES
 ## Project: Aetheria: Overdrive
-**Document Version**: 1.0.0  
+**Document Version**: 2.0.0 (Go & Unity Architecture)  
 **Classification**: Milestone Schedule & Acceptance Criteria  
 **Project Lead**: Nguyễn Quý Dương (`Blackerd`)
 
@@ -18,9 +18,9 @@ gantt
     M0: GDD, TDD & Architecture Sign-Off    :done, m0, 2026-11-22, 1d
     section Production
     M1: Core Mechanics & Prototype           :active, m1, after m0, 3d
-    M2: Authoritative Multiplayer Netcode    :m2, after m1, 4d
+    M2: Golang Authoritative Netcode Server  :m2, after m1, 4d
     M3: Content, Classes & Boss Fight        :m3, after m2, 4d
-    M4: Cloud Services & Meta Economy        :m4, after m3, 3d
+    M4: Golang Cloud Gateway & Redis Leaderboard:m4, after m3, 3d
     section Launch & LiveOps
     M5: WebGL Polish & Portfolio Deploy      :m5, after m4, 2d
 ```
@@ -31,8 +31,8 @@ gantt
 
 ### Milestone 0: Pre-Production & Architecture Sign-Off (Current Milestone)
 - [x] Complete Game Design Document (GDD) with full combat formulas and class design.
-- [x] Complete Technical Design Document (TDD) covering Unity C#, Colyseus, and NestJS.
-- [x] Complete Multiplayer Netcode & Schema Protocol Specification.
+- [x] Complete Technical Design Document (TDD) covering Unity C# and Go (Golang) Game Server.
+- [x] Complete Multiplayer Netcode & Schema Protocol Specification in Go.
 - [x] Complete UI/UX Flow, HUD wireframes, and cross-platform input mappings.
 - [x] Complete Art & Audio Asset Specification with color tokens and SFX manifest.
 - [x] Project workspace initialized with Git repository and documentation suite.
@@ -50,11 +50,11 @@ gantt
 
 ---
 
-### Milestone 2: Authoritative Multiplayer Netcode (Colyseus)
-- [ ] Initialize Colyseus TypeScript server in `server/` directory.
-- [ ] Implement `ArenaRoom` with 30 Hz fixed simulation loop.
-- [ ] Implement `ArenaRoomState` and `PlayerState` schema synchronization.
-- [ ] Unity C# Colyseus Client wrapper connecting via WebSockets.
+### Milestone 2: Golang Authoritative Netcode Server (Go 1.23)
+- [ ] Initialize Go module (`go mod init aetheria-server`) in `server/` directory.
+- [ ] Implement `Room` with 30-60 Hz fixed simulation loop using `time.Ticker`.
+- [ ] Implement Goroutine-per-room lifecycle and thread-safe channel inbox.
+- [ ] Unity C# WebSocket client wrapper connecting to Go Game Server.
 - [ ] Interpolation buffer smoothing remote player movements with zero jitter.
 - [ ] Shareable Room Code mechanism (`ROOM-XXXX`) enabling 2-4 players to join the same instance.
 - **DoD Acceptance**: 2 distinct browser tabs can join the same room, see each other move, shoot, and reflect health changes without desync.
@@ -71,13 +71,13 @@ gantt
 
 ---
 
-### Milestone 4: Cloud Services & Meta-Progression (NestJS + Redis)
-- [ ] Initialize NestJS + Fastify backend in `backend/` directory.
-- [ ] Implement Guest Authentication & JWT session generation.
+### Milestone 4: Golang Cloud Services & Meta-Progression (PostgreSQL + Redis)
+- [ ] Implement REST API gateway in Go (`backend/` or unified service).
+- [ ] Guest Authentication & JWT session generation.
 - [ ] Redis Sorted Sets (`ZSET`) global high-score leaderboard tracking wave clears & kills.
 - [ ] Match completion webhook with anti-fraud signature verification.
-- [ ] Persistent Core Relic currency and Meta Talent Tree API.
-- **DoD Acceptance**: Match results securely post to cloud backend and populate real-time global leaderboard.
+- [ ] Persistent Core Relic currency and Meta Talent Tree in PostgreSQL.
+- **DoD Acceptance**: Match results securely post to Go backend and populate real-time global leaderboard.
 
 ---
 
@@ -86,4 +86,4 @@ gantt
 - [ ] Responsive full-screen HTML5 canvas integration.
 - [ ] Embedded "Play Game Now" section added to portfolio website ([blackerd.github.io/portfolio](https://blackerd.github.io/portfolio/)).
 - [ ] Windows PC standalone `.exe` build packaged and uploaded as downloadable release.
-- **DoD Acceptance**: Game loads under 5 seconds in Google Chrome, plays smoothly, and connects to live production multiplayer server.
+- **DoD Acceptance**: Game loads under 5 seconds in Google Chrome, plays smoothly, and connects to live production Go multiplayer server.

@@ -1,6 +1,6 @@
 # TECHNICAL DESIGN DOCUMENT (TDD)
 ## Project: Aetheria: Overdrive
-**Document Version**: 1.0.0  
+**Document Version**: 2.0.0 (Go & Unity Architecture)  
 **Classification**: Engineering & System Specification  
 **Lead Architect**: Nguyễn Quý Dương (`Blackerd`)
 
@@ -8,7 +8,7 @@
 
 ## 1. System Topology & Decoupled Architecture
 
-**Aetheria: Overdrive** follows a decoupled 3-tier architecture separating the **Rendering Client**, the **Authoritative Game Simulation Server**, and the **Stateful Cloud Services**:
+**Aetheria: Overdrive** follows a decoupled 3-tier architecture separating the **Rendering Client (Unity C#)**, the **High-Performance Authoritative Game Server (Go / Golang)**, and the **Stateful Cloud Services**:
 
 ```mermaid
 flowchart TB
@@ -17,17 +17,18 @@ flowchart TB
         InputMgr["Input System (PC / Touch)"]
         GameEngine["Gameplay Controllers & State Machine"]
         VFX["Particle Pool & Audio Synthesizer"]
-        NetClient["Colyseus Network Client Wrapper"]
+        NetClient["Go WebSocket Client Protocol"]
     end
 
-    subgraph NetcodeLayer ["Authoritative Netcode Layer (Node.js 22 + Colyseus 0.16)"]
-        RoomMgr["ArenaRoom Lifecycle Manager"]
-        SimLoop["Tick Simulation Loop (30 Hz / 33.3ms)"]
-        CollisionEngine["Spatial Hash Grid 2D Collision"]
-        StateReplication["Schema State Patch Delta Engine"]
+    subgraph NetcodeLayer ["Authoritative Netcode Layer (Golang 1.23 Engine)"]
+        RoomMgr["Room Hub & Lifecycle Manager"]
+        GoroutineRooms["Goroutine Per Active Room Instance"]
+        SimLoop["Fixed 30/60 Hz Game Loop (Ticker)"]
+        CollisionEngine["Spatial Hash Grid 2D Collision (Go)"]
+        StateReplication["Binary Delta Patch Compressor"]
     end
 
-    subgraph ServiceLayer ["Cloud Services Layer (NestJS + Fastify Engine)"]
+    subgraph ServiceLayer ["Cloud Services Layer (Golang Gateway)"]
         Gateway["REST API & Matchmaking Gateway"]
         AuthModule["Guest Session & JWT Service"]
         RankModule["Leaderboard Service (Redis ZSET)"]
@@ -36,7 +37,7 @@ flowchart TB
 
     subgraph StorageLayer ["Persistence & Cache Layer"]
         RedisCache[("Redis 7 (Leaderboard & Matchmaking Queue)")]
-        DBStore[("PostgreSQL / SQLite WAL Database")]
+        DBStore[("PostgreSQL 16 Database")]
     end
 
     InputMgr --> GameEngine
@@ -44,12 +45,13 @@ flowchart TB
     GameEngine --> UI
     GameEngine <--> NetClient
 
-    NetClient <-->|"WebSocket Binary (Schema Sync)"| RoomMgr
-    RoomMgr --> SimLoop
+    NetClient <-->|"WebSocket Binary (Protobuf / FlatBuffers)"| RoomMgr
+    RoomMgr --> GoroutineRooms
+    GoroutineRooms --> SimLoop
     SimLoop --> CollisionEngine
     SimLoop --> StateReplication
 
-    RoomMgr <-->|"Internal HTTP / IPC"| Gateway
+    RoomMgr <-->|"Internal IPC / gRPC"| Gateway
     Gateway --> AuthModule
     Gateway --> RankModule
     Gateway --> Telemetry
@@ -97,7 +99,7 @@ Assets/
 │   │   └── WaveSystem/
 │   ├── Netcode/
 │   │   ├── NetworkManager.cs
-│   │   ├── ColyseusClientWrapper.cs
+│   │   ├── GoSocketProtocol.cs
 │   │   └── Interpolator.cs
 │   └── UI/
 │       ├── HUD/
@@ -115,7 +117,6 @@ Assets/
 To maintain 60 FPS on lower-tier laptops and mobile browsers via WebGL, zero dynamic heap allocations occur during combat:
 
 ```csharp
-// High-Performance Zero-Allocation Object Pool Interface
 public interface IPoolable {
     void OnSpawnFromPool();
     void OnReturnToPool();
@@ -156,24 +157,51 @@ public class FastObjectPool<T> where T : Component, IPoolable {
 
 ---
 
-## 3. Authoritative Netcode Server (Colyseus)
+## 3. Authoritative Golang Dedicated Game Server
 
-### 3.1 The 30 Hz Fixed Simulation Loop
-The server runs a deterministic fixed tick rate at **30 Hz (33.33ms per tick)**:
+### 3.1 Why Go (Golang) for Game Servers?
+- **Goroutine Concurrency**: Each active match runs inside an isolated, lightweight Goroutine requiring only ~2KB of stack memory. A single $10/month VPS can host thousands of concurrent rooms.
+- **Zero GC Lag Spikes**: Go's low-latency concurrent garbage collector avoids the execution freezes common in other runtimes.
+- **Native Memory Control**: Efficient byte manipulation and struct packing for minimal packet sizes over WebSockets.
 
+### 3.2 Fixed Tick Simulation Loop (30-60 Hz)
+```go
+package room
+
+import (
+    "context"
+    "time"
+)
+
+type Room struct {
+    ID        string
+    ticker    *time.Ticker
+    inbox     chan ClientPacket
+    state     *GameState
+    clients   map[string]*ClientConnection
+}
+
+func (r *Room) Run(ctx context.Context) {
+    r.ticker = time.NewTicker(33 * time.Millisecond) // 30 TPS
+    defer r.ticker.Stop()
+
+    for {
+        select {
+        case <-ctx.Done():
+            return
+        case pkt := <-r.inbox:
+            r.processInput(pkt)
+        case <-r.ticker.C:
+            r.updatePhysics()
+            r.updateProjectiles()
+            r.updateEnemies()
+            r.broadcastStateDelta()
+        }
+    }
+}
 ```
-[ Tick 101 Start ] 
-  ├── 1. Process Received Input Packets (WASD, Aim Angle, Ability Triggers)
-  ├── 2. Update Operative Positions (Verify Speed Limits & Obstacle Collisions)
-  ├── 3. Advance Projectiles (Raycast & Circle Casts)
-  ├── 4. Advance Enemy AI Paths (Spatial Hash Grid Clustering)
-  ├── 5. Evaluate Hit Registrations & Apply Shield/Health Decrements
-  ├── 6. Check Wave Clearance & Draft Trigger Conditions
-  └── 7. Dispatch Colyseus Binary Schema State Patch to Connected Clients
-[ Tick 101 End ]
-```
 
-### 3.2 Anti-Cheat & Server Authority Rules
+### 3.3 Anti-Cheat & Server Authority Rules
 To prevent common web/memory hacking:
 1. **Move Speed Validation**: Operative displacement between ticks cannot exceed `MaxSpeed * DeltaTime * 1.15` (15% grace threshold for packet jitter). Flagged packets are snapped back to authoritative position.
 2. **Server-Side Projectile Spawning**: Client sends `C2S_FireWeapon { aimAngle, weaponId }`. The server validates cooldowns, spawns the authoritative bullet entity, and broadcasts the bullet UID.
@@ -181,30 +209,32 @@ To prevent common web/memory hacking:
 
 ---
 
-## 4. Cloud Services & API (NestJS + Fastify)
+## 4. Cloud Services & API (Golang Gateway)
 
 ### 4.1 REST API Endpoints Specification
-The cloud services engine operates on port `48000` (or reverse-proxied over HTTPS):
+The cloud services engine operates on port `8080` (or reverse-proxied over HTTPS):
 
 | Method | Endpoint | Description | Auth Required |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/auth/guest` | Generates or resumes a guest player identity. | No |
 | `GET` | `/api/v1/leaderboard/global` | Fetches Top 100 players ranked by Wave Cleared & Kill Count. | No |
-| `POST` | `/api/v1/leaderboard/submit` | Submits match scorecard signed by Colyseus Server Secret. | Server Secret |
+| `POST` | `/api/v1/leaderboard/submit` | Submits match scorecard signed by Go Game Server Secret. | Server Secret |
 | `GET` | `/api/v1/profile/meta-talents` | Retrieves unlocked persistent skill tree talents. | JWT Bearer |
 | `POST` | `/api/v1/profile/upgrade-talent` | Spends Core Relics to purchase persistent stat upgrades. | JWT Bearer |
 
 ### 4.2 Redis Real-Time Leaderboard Mechanics
 Leaderboard rankings are managed with Redis Sorted Sets (`ZSET`) for $O(\log(N))$ time complexity:
 
-```typescript
-// Submitting a run score to Redis Sorted Set
-const scoreKey = 'leaderboard:global:wave_score';
-const compositeScore = waveCleared * 1_000_000 + totalKills * 10 - elapsedSeconds;
-await redisClient.zadd(scoreKey, compositeScore, playerId);
-
-// Fetching Top 10 High Scores
-const topPlayers = await redisClient.zrevrange(scoreKey, 0, 9, 'WITHSCORES');
+```go
+// Submitting a run score to Redis Sorted Set in Go
+func (s *RankingService) SubmitScore(ctx context.Context, playerID string, wave int, kills int, seconds int) error {
+    scoreKey := "leaderboard:global:wave_score"
+    compositeScore := float64(wave * 1_000_000 + kills * 10 - seconds)
+    return s.redisClient.ZAdd(ctx, scoreKey, redis.Z{
+        Score:  compositeScore,
+        Member: playerID,
+    }).Err()
+}
 ```
 
 ---

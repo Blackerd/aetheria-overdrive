@@ -1,11 +1,11 @@
-# Server Directory — Authoritative Netcode Server
+# Server Directory — Golang Dedicated Game Server
 
-This directory contains the **Colyseus 0.16** authoritative multiplayer game server built on Node.js / TypeScript.
+This directory contains the **Golang (Go 1.23+)** authoritative multiplayer game server for **Aetheria: Overdrive**.
 
-## Key Capabilities
-- **Tick Rate**: Fixed 30 Hz (33.33ms) simulation loop.
-- **Rooms**: `ArenaRoom` handling 1-4 operative co-op instances.
-- **State Synchronization**: Colyseus binary schema delta patches.
-- **Anti-Cheat**: Server-side movement velocity bounds, projectile casting, and damage mitigation.
+## Key Architecture
+- **Goroutine-per-Room Concurrency**: Every battle instance runs inside an isolated, lightweight Goroutine.
+- **Fixed Simulation Tick**: 30 - 60 Hz physics & hit-registration loop using Go's `time.Ticker`.
+- **Low-Overhead WebSockets**: Native binary state synchronization with minimal packet overhead.
+- **Spatial Hash Grid (2D)**: Ultra-fast projectile and enemy collision checking in pure Go.
 
-See full specifications in [`docs/03_MULTIPLAYER_NETCODE_SPEC.md`](../docs/03_MULTIPLAYER_NETCODE_SPEC.md).
+See full specifications in [`docs/02_TDD_TECHNICAL_ARCHITECTURE.md`](../docs/02_TDD_TECHNICAL_ARCHITECTURE.md) and [`docs/03_MULTIPLAYER_NETCODE_SPEC.md`](../docs/03_MULTIPLAYER_NETCODE_SPEC.md).

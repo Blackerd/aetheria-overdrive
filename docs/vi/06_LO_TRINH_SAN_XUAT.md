@@ -1,6 +1,6 @@
 # LỘ TRÌNH SẢN XUẤT & CÁC CỘT MỐC (ROADMAP)
 ## Dự án: Aetheria: Overdrive
-**Phiên bản tài liệu**: 1.0.0 (Bản Tiếng Việt)  
+**Phiên bản tài liệu**: 2.0.0 (Kiến trúc Chuẩn Studio: Unity & Golang)  
 **Phân loại**: Kế hoạch Tiến độ & Tiêu chuẩn Nghiệm thu  
 **Chủ nhiệm dự án**: Nguyễn Quý Dương (`Blackerd`)
 
@@ -11,10 +11,10 @@
 Dự án được chia thành 6 giai đoạn phát triển có kiểm soát chặt chẽ theo mô hình Game Studio chuyên nghiệp:
 
 - **Cột mốc 0 (M0)**: Tiền sản xuất & Hoàn thiện toàn bộ tài liệu thiết kế (Đã hoàn thành ✅).
-- **Cột mốc 1 (M1)**: Bản chơi thử cơ chế cốt lõi (Core Mechanics & Solo Prototype).
-- **Cột mốc 2 (M2)**: Ghép nối Netcode đồng bộ phòng đấu nhiều người chơi (Colyseus Multiplayer).
+- **Cột mốc 1 (M1)**: Bản chơi thử cơ chế cốt lõi (Core Mechanics & Solo Prototype trong Unity).
+- **Cột mốc 2 (M2)**: Xây dựng Server Netcode đồng bộ phòng đấu bằng Golang (Go Game Server).
 - **Cột mốc 3 (M3)**: Mở rộng nội dung (3 Lớp nhân vật, 4 loại quái & Trùm cuối Apex Overlord).
-- **Cột mốc 4 (M4)**: Dịch vụ đám mây, Bảng xếp hạng Redis & Cây kỹ năng vĩnh viễn (NestJS Backend).
+- **Cột mốc 4 (M4)**: Dịch vụ đám mây, Bảng xếp hạng Redis & Lưu trữ PostgreSQL trong Go.
 - **Cột mốc 5 (M5)**: Tối ưu WebGL, Nhúng trực tiếp lên Portfolio & Phát hành bản PC Windows `.exe`.
 
 ---
@@ -23,8 +23,8 @@ Dự án được chia thành 6 giai đoạn phát triển có kiểm soát ch�
 
 ### Cột mốc 0: Tiền sản xuất & Duyệt tài liệu kiến trúc (ĐÃ HOÀN THÀNH ✅)
 - [x] Soạn thảo toàn bộ Tài liệu thiết kế Game (GDD) song ngữ Anh - Việt.
-- [x] Soạn thảo Tài liệu kiến trúc kỹ thuật (TDD) mô tả hệ thống 3 tầng.
-- [x] Soạn thảo Đặc tả giao thức mạng Netcode Colyseus và cơ chế chống lag.
+- [x] Soạn thảo Tài liệu kiến trúc kỹ thuật (TDD) mô tả hệ thống 3 tầng Unity & Golang.
+- [x] Soạn thảo Đặc tả giao thức mạng Netcode Go WebSocket và cơ chế chống lag.
 - [x] Soạn thảo Luồng giao diện UI/UX và bản vẽ wireframe HUD.
 - [x] Soạn thảo Quy chuẩn mỹ thuật, mã màu và âm thanh.
 - [x] Khởi tạo kho lưu trữ Git và đẩy toàn bộ bộ khung dự án lên.
@@ -42,10 +42,10 @@ Dự án được chia thành 6 giai đoạn phát triển có kiểm soát ch�
 
 ---
 
-### Cột mốc 2: Ghép nối Netcode Colyseus nhiều người chơi (M2)
-- [ ] Khởi tạo Server Colyseus TypeScript trong thư mục `server/`.
-- [ ] Xây dựng vòng lặp mô phỏng vật lý cố định 30 Hz trên server.
-- [ ] Tích hợp thư viện Colyseus Client vào Unity qua WebSocket.
+### Cột mốc 2: Ghép nối Netcode Server viết bằng Go (Golang 1.23) (M2)
+- [ ] Khởi tạo Go Module (`go mod init aetheria-server`) trong thư mục `server/`.
+- [ ] Xây dựng vòng lặp mô phỏng vật lý cố định 30 - 60 Hz bằng `time.Ticker` trong Go.
+- [ ] Tích hợp client WebSocket vào Unity kết nối tới Go Game Server.
 - [ ] Lập trình cơ chế tạo phòng và vào phòng bằng Mã Code (`ROOM-XXXX`).
 - [ ] Thuật toán nội suy Interpolation làm mượt chuyển động của đồng đội.
 - **Tiêu chuẩn nghiệm thu (DoD)**: 2 trình duyệt web mở 2 tab khác nhau cùng vào 1 phòng, nhìn thấy nhau di chuyển, bắn súng và trừ máu mượt mà không bị lệch đồng bộ.
@@ -62,12 +62,12 @@ Dự án được chia thành 6 giai đoạn phát triển có kiểm soát ch�
 
 ---
 
-### Cột mốc 4: Dịch Vụ Đám Mây & Bảng Xếp Hạng (NestJS + Redis) (M4)
-- [ ] Khởi tạo backend NestJS + Fastify trong thư mục `backend/`.
-- [ ] Hệ thống cấp phiên chơi nhanh (Guest Login) và mã Token bảo mật.
+### Cột mốc 4: Dịch Vụ Đám Mây & Bảng Xếp Hạng (Golang + Redis + PostgreSQL) (M4)
+- [ ] Xây dựng cổng REST API bằng Go trong thư mục `backend/`.
+- [ ] Hệ thống cấp phiên chơi nhanh (Guest Login) và mã JWT Token bảo mật.
 - [ ] Bảng xếp hạng toàn cầu thời gian thực lưu trên Redis Sorted Sets (`ZSET`).
 - [ ] Cơ chế kiểm tra tính hợp lệ của điểm số chống hack gửi điểm giả.
-- [ ] Cây nâng cấp kỹ năng vĩnh viễn (Meta-Talent Tree).
+- [ ] Cây nâng cấp kỹ năng vĩnh viễn (Meta-Talent Tree) lưu trong PostgreSQL.
 - **Tiêu chuẩn nghiệm thu (DoD)**: Điểm số sau trận đấu tự động gửi lên đám mây và người chơi thấy tên mình xuất hiện ngay trên Bảng Xếp Hạng Top 100.
 
 ---
