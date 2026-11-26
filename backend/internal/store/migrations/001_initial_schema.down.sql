@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS match_history;
+DROP TABLE IF EXISTS meta_talents;
+DROP TABLE IF EXISTS players;

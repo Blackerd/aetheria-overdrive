@@ -44,7 +44,7 @@ gantt
 ### Milestone 1: Local Infra & Golang Cloud Backend (`backend/`)
 - [x] Setup `docker-compose.yml` for PostgreSQL 16 and Redis 7 with healthchecks.
 - [x] Initialize Go module (`go mod init aetheria-backend`) in `backend/` with config & `/healthz`.
-- [ ] Implement SQL schema & migrations (`players`, `meta_talents`, `match_history`).
+- [x] Implement SQL schema & migrations (`players`, `meta_talents`, `match_history`).
 - [ ] Implement Guest Authentication (`POST /api/v1/auth/guest`) and JWT middleware.
 - [ ] Implement Redis Sorted Sets (`ZSET`) global leaderboard & server-signed score submission.
 - [ ] Implement transactional Core Relic Meta-Talent upgrade endpoints.

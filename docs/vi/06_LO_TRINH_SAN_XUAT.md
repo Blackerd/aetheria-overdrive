@@ -32,7 +32,7 @@ Dự án đi theo chiến lược **Backend & Game Server First** (xây dựng n
 ### Cột mốc 1: Hạ tầng cục bộ & Cloud Backend bằng Go (`backend/`)
 - [x] Tạo `docker-compose.yml` chạy `postgres:16-alpine` và `redis:7-alpine` kèm healthcheck.
 - [x] Khởi tạo Go Module (`go mod init aetheria-backend`), config `.env` và `GET /healthz`.
-- [ ] Viết SQL schema & migration cho bảng `players`, `meta_talents`, `match_history`.
+- [x] Viết SQL schema & migration cho bảng `players`, `meta_talents`, `match_history`.
 - [ ] Lập trình đăng nhập nhanh Guest (`POST /api/v1/auth/guest`) và JWT Middleware.
 - [ ] Lập trình Bảng xếp hạng Redis Sorted Sets (`ZSET`) & API nộp điểm có chữ ký bảo mật từ Server.
 - [ ] Lập trình API nâng cấp Cây Kỹ Năng (Meta-Talents) dùng transaction chống race condition.

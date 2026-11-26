@@ -29,6 +29,14 @@ func main() {
 	}
 	defer pgPool.Close()
 
+	applied, err := store.MigrateUp(startupCtx, pgPool)
+	if err != nil {
+		log.Fatalf("run migrations: %v", err)
+	}
+	if applied > 0 {
+		log.Printf("applied %d database migration(s)", applied)
+	}
+
 	rdb, err := store.NewRedisClient(startupCtx, cfg.RedisAddr)
 	if err != nil {
 		log.Fatalf("init redis: %v", err)
