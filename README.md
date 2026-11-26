@@ -12,6 +12,8 @@
 
 > **AETHERIA: OVERDRIVE** là dự án game hành động roguelite góc nhìn từ trên xuống (top-down), hỗ trợ chơi Solo và Co-op nhiều người chơi thời gian thực (1-4 người). Dự án được thiết kế hoàn chỉnh theo tiêu chuẩn của một **Full-Stack Game Developer**: kết hợp giữa Client **Unity C#**, Server mạng phân quyền viết bằng **Go (Golang)** siêu tốc độ, và cơ sở dữ liệu **PostgreSQL + Redis**.
 
+> 🤖 **Dành cho AI Agent / Máy mới:** Hãy đọc [`AGENTS.md`](file:///c:/cty/aetheria-overdrive/AGENTS.md) và [`docs/vi/07_HUONG_DAN_MOI_TRUONG_VA_TRIEN_KHAI.md`](file:///c:/cty/aetheria-overdrive/docs/vi/07_HUONG_DAN_MOI_TRUONG_VA_TRIEN_KHAI.md) trước tiên để nắm chính xác thứ tự cài đặt phần mềm, code & test (Backend/Server trước -> Unity Client sau).
+
 ---
 
 ## 🧭 Kiến Trúc Hệ Thống (System Topology)
@@ -56,12 +58,14 @@ Dự án cung cấp đầy đủ cả hai phiên bản **Tiếng Anh (EN)** và 
 
 | STT | Tài liệu | Bản Tiếng Anh (English) | Bản Tiếng Việt (Vietnamese) | Phạm vi & Nội dung |
 | :---: | :--- | :---: | :---: | :--- |
+| **00** | **AI Agent Handbook** | [`AGENTS.md`](file:///c:/cty/aetheria-overdrive/AGENTS.md) | — | Cẩm nang chuẩn cho AI khi chuyển máy mới: Hard rules, Stack, thứ tự code & kiểm tra công cụ. |
 | **01** | **Game Design (GDD)** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/01_GDD_GAME_DESIGN_DOCUMENT.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/01_GDD_TAI_LIEU_THIET_KE_GAME.md) | Cốt truyện, 3 lớp nhân vật, công thức sát thương, quái, Boss 3 phase, thẻ Perk Roguelite. |
 | **02** | **Technical Arch (TDD)** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/02_TDD_TECHNICAL_ARCHITECTURE.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/02_TDD_KIEN_TRUC_KY_THUAT.md) | Clean Architecture Unity C#, Go Server Goroutines, Spatial Grid, PostgreSQL + Redis, tối ưu WebGL. |
 | **03** | **Multiplayer Netcode** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/03_MULTIPLAYER_NETCODE_SPEC.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/03_NETCODE_DONG_BO_MULTIPLAYER.md) | Giao thức đồng bộ Go WebSocket Binary, nội suy Interpolation 100ms chống lag, chống hack vị trí. |
 | **04** | **UI/UX & Wireframes** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/04_UI_UX_FLOW_AND_WIREFRAMES.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/04_UI_UX_LUONG_MAN_HINH_VA_WIREFRAME.md) | Sơ đồ luồng màn hình, bản vẽ wireframe HUD chiến đấu, mã phòng Co-op, nút bấm PC/Mobile. |
 | **05** | **Art, Audio & Style** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/05_ART_AND_AUDIO_SPEC.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/05_MY_THUAT_VA_AM_THANH.md) | Phong cách Neo-Cyberpunk, bảng mã màu Token, danh mục hiệu ứng hạt VFX và âm thanh SFX/BGM. |
-| **06** | **Production Roadmap** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/06_PRODUCTION_ROADMAP.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/06_LO_TRINH_SAN_XUAT.md) | 6 Cột mốc sản xuất (M0 -> M5), kế hoạch Sprint và tiêu chuẩn nghiệm thu Definition of Done. |
+| **06** | **Production Roadmap** | [English Doc](file:///c:/cty/aetheria-overdrive/docs/06_PRODUCTION_ROADMAP.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/06_LO_TRINH_SAN_XUAT.md) | 6 Cột mốc sản xuất (M0 -> M5) theo hướng Backend/Server-First và Definition of Done. |
+| **07** | **Dev Env & Impl Order**| [English Doc](file:///c:/cty/aetheria-overdrive/docs/07_DEV_ENV_AND_IMPL_GUIDE.md) | [Bản Tiếng Việt](file:///c:/cty/aetheria-overdrive/docs/vi/07_HUONG_DAN_MOI_TRUONG_VA_TRIEN_KHAI.md) | Phần mềm cần cài theo từng giai đoạn, lệnh cài trên máy mới, thứ tự Code trước -> Test trước. |
 
 ---
 
@@ -69,20 +73,11 @@ Dự án cung cấp đầy đủ cả hai phiên bản **Tiếng Anh (EN)** và 
 
 ```
 c:\cty\aetheria-overdrive/
+├── AGENTS.md                          # 🤖 Cẩm nang tự động cho AI khi mở repo ở bất kỳ máy nào
 ├── docs/                              # Toàn bộ tài liệu thiết kế & kỹ thuật
-│   ├── vi/                            # 🇻🇳 Bộ tài liệu chi tiết Tiếng Việt
-│   │   ├── 01_GDD_TAI_LIEU_THIET_KE_GAME.md
-│   │   ├── 02_TDD_KIEN_TRUC_KY_THUAT.md
-│   │   ├── 03_NETCODE_DONG_BO_MULTIPLAYER.md
-│   │   ├── 04_UI_UX_LUONG_MAN_HINH_VA_WIREFRAME.md
-│   │   ├── 05_MY_THUAT_VA_AM_THANH.md
-│   │   └── 06_LO_TRINH_SAN_XUAT.md
-│   ├── 01_GDD_GAME_DESIGN_DOCUMENT.md # 🇺🇸 Bộ tài liệu chuẩn quốc tế Tiếng Anh
-│   ├── 02_TDD_TECHNICAL_ARCHITECTURE.md
-│   ├── 03_MULTIPLAYER_NETCODE_SPEC.md
-│   ├── 04_UI_UX_FLOW_AND_WIREFRAMES.md
-│   ├── 05_ART_AND_AUDIO_SPEC.md
-│   └── 06_PRODUCTION_ROADMAP.md
+│   ├── vi/                            # 🇻🇳 Bộ tài liệu chi tiết Tiếng Việt (01 -> 07)
+│   ├── 01_GDD_GAME_DESIGN_DOCUMENT.md # 🇺🇸 Bộ tài liệu chuẩn quốc tế Tiếng Anh (01 -> 07)
+│   └── ...
 ├── client/                            # Mã nguồn Unity C# Client Project (WebGL / Windows PC)
 ├── server/                            # Mã nguồn Golang Dedicated Game Server (Go 1.23)
 └── backend/                           # Mã nguồn Golang Cloud API & Services (PostgreSQL + Redis)
